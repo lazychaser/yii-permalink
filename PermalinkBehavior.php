@@ -13,7 +13,7 @@ class PermalinkBehavior extends CBehavior
     static private $_manager;
 
     /**
-     * Whether to validate permalink before saving.
+     * Whether to validate if permalink is exists before saving.
      * Error message is set for attribute _permalink by default.
      * @var boolean
      */
@@ -53,12 +53,12 @@ class PermalinkBehavior extends CBehavior
      */
     public function updatePermalink()
     {
-        $owner = $this->getOwner();
-        $manager = $this->getManager();
-        $permalink = $this->getNewPermalink();
+        $owner      = $this->getOwner();
+        $manager    = $this->getManager();
+        $permalink  = $this->getNewPermalink();
 
         if (!$permalink) {
-            if ($this->hasPermalink()) {
+            if ($manager->hasPermalink($owner)) {
                 $manager->removePermalinks($owner);
                 return true;
             }
@@ -73,6 +73,9 @@ class PermalinkBehavior extends CBehavior
     // Properties //
     ////////////////
 
+    /**
+     * @return string current permalink.
+     */
     public function getPermalink()
     {
         return $this->getManager()->getPermalink($this->getOwner());
@@ -94,11 +97,12 @@ class PermalinkBehavior extends CBehavior
     public function getManager()
     {
         if (self::$_manager == null) {
-            if (!self::$_manager = Yii::app()->getComponent('permalinkManager'))
+            if (!self::$_manager = Yii::app()->getComponent('permalinkManager')) {
                 throw new CException(Yii::t(
                     'permalink', 
                     'Could not find component "permalinkManager".'
                 ));
+            }
         }
 
         return self::$_manager;
@@ -117,6 +121,7 @@ class PermalinkBehavior extends CBehavior
                 $this->validateAttribute ? $this->validateAttribute : '_permalink', 
                 Yii::t('permalink', 'Such permalink already exists.'
             ));
+            
             $event->isValid = false;
         }
     }

@@ -10,6 +10,6 @@ class PermalinkValidator extends CRegularExpressionValidator
     public function __construct()
     {
         $this->pattern = '/^['.Permalink::$characters.']+$/i';
-        $this->message = Yii::t('app', '{attribute} содержит запрещенные символы. Разрешены только латинские буквы, цифры, нижнее подчеркивание, тире и обратный слэш.');
+        $this->message = Yii::t('permalink', '{attribute} contains forbidden symbols. Only latin letters, digits, _, - and backslash are allowed.');
     }
 }

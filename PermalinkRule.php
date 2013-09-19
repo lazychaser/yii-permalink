@@ -20,12 +20,20 @@ class PermalinkRule extends CBaseUrlRule
     public $old = self::IGNORE;
 
     /**
-     * Array of modelClassName-route values, i.e.
+     * Array of modelClassName => route values, i.e.
      * ProductCatalog => shop/catalog/view
      * @var array
      */
     public $map = array();
 
+    /**
+     * array(modelClassName, id)
+     * The model that is used to represent index page.
+     * This model will be viewed when no route is requested.
+     * Empty URL will be created for this model.
+     *
+     * @var array
+     */
     public $indexPage;
 
     private $_manager;
@@ -58,8 +66,6 @@ class PermalinkRule extends CBaseUrlRule
 
         if (!empty($params) && $pathInfo = $manager->createPathInfo($params, '=', $ampersand))
             $url .= '?'.$pathInfo;
-
-        Yii::trace("Creating url for $modelName#$id from \"$route\" to \"$url\".", "permalink.PermalinkRule");
 
         return $url;
     }
@@ -109,16 +115,26 @@ class PermalinkRule extends CBaseUrlRule
     public function getManager()
     {
         if ($this->_manager == null) {
-            if (!$this->_manager = Yii::app()->getComponent('permalinkManager'))
-                throw new Exception(Yii::t(
+            if (!$this->_manager = Yii::app()->getComponent('permalinkManager')) {
+                throw new CException(Yii::t(
                     'permalink', 
-                    'Не удалось найти менеджер пермалинков. Удостоверьтесь, что он доступен под идентификатором "permalinkManager".')
+                    'Cannot find permalink manager component. Make shure it is available under id of "permalinkManager".')
                 );
+            }
         }
 
         return $this->_manager;
     }
 
+    /**
+     * Returns model class name from given route.
+     * At first, {@link map} will be scanned.
+     * If it fails, for routes like "user/view" "User" will be returned.
+     *
+     * @param  string $route The route.
+     *
+     * @return string        Model class name or false.
+     */
     protected function getModelByRoute($route)
     {
         if ($this->_routeMap === null) {
@@ -140,6 +156,13 @@ class PermalinkRule extends CBaseUrlRule
         return false;
     }
 
+    /**
+     * Gets route for viewing model.
+     *
+     * @param  string $modelClassName 
+     *
+     * @return string                 
+     */
     protected function getRouteByModel($modelClassName)
     {
         if (isset($this->map[$modelClassName]))
